@@ -1,0 +1,10 @@
+node_modules
+dist
+coverage
+*.tsbuildinfo
+.DS_Store
+playwright-report
+test-results
+.vite
+packages/react-three-arjs/src/assets/*.generated.ts
+.claude/
