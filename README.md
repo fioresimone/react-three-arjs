@@ -26,10 +26,26 @@ To try the webcam demos on a phone, serve the demo over HTTPS on your network.
 
 ## Releasing
 
-Changes are versioned with [Changesets](https://github.com/changesets/changesets):
-run `pnpm changeset`, commit, and merge to `main`. The Release workflow opens a
-"Version packages" pull request; merging it publishes to npm with provenance
-(needs an `NPM_TOKEN` repository secret).
+Releases run in the **Release** GitHub workflow (`.github/workflows/release.yml`):
+
+1. Describe a change with `pnpm changeset`, commit and merge to `main`.
+2. The workflow opens a "Version packages" pull request (bumps versions, updates the
+   changelog). Merge it.
+3. The workflow then publishes every package version not yet on npm
+   (`scripts/publish.mjs`) and creates a GitHub release.
+
+The workflow can also be started by hand (_Actions → Release → Run workflow_).
+
+npm authentication:
+
+- **First release:** add an `NPM_TOKEN` repository secret: a granular access token on
+  npmjs.com with read and write access to packages and "bypass 2FA" enabled (npm plans
+  to stop direct publishing with these tokens in January 2027).
+- **Afterwards:** on npmjs.com, open the package → _Settings_ → _Trusted publishing_,
+  add GitHub Actions with repository `fioresimone/react-three-arjs` and workflow
+  `release.yml`, then delete the `NPM_TOKEN` secret. No token is needed from then on.
+
+Provenance attestations are added automatically once the repository is public.
 
 ## Known upstream issues worked around
 

@@ -3,13 +3,14 @@ name: Release
 on:
   push:
     branches: [main]
+  workflow_dispatch:
 
 concurrency: release-${{ github.ref }}
 
 permissions:
   contents: write
   pull-requests: write
-  id-token: write # npm provenance / trusted publishing
+  id-token: write # npm trusted publishing (OIDC) and provenance
 
 jobs:
   release:
@@ -22,16 +23,25 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
           registry-url: https://registry.npmjs.org
+      # Trusted publishing needs npm >= 11.5.1.
+      - run: npm install -g npm@latest
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
       - run: pnpm test
-      # Opens a "Version packages" PR; when that PR is merged, publishes to npm.
+      # With pending changesets: opens a "Version packages" PR.
+      # Without: publishes every package version that is not on npm yet.
       - uses: changesets/action@v1
         with:
           publish: pnpm release
           version: pnpm changeset version
+          createGithubReleases: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Authentication, in order of preference:
+          # 1. npm trusted publishing (OIDC): configure it on npmjs.com after the first
+          #    release, then delete the NPM_TOKEN secret.
+          # 2. NPM_TOKEN: a granular token with publish rights and "bypass 2FA".
+          #    npm plans to remove direct publishing for these tokens in January 2027.
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-          # Provenance can only be generated in CI, so it is enabled here rather than in package.json.
-          NPM_CONFIG_PROVENANCE: true
+          # Provenance only works from public repositories.
+          NPM_CONFIG_PROVENANCE: ${{ !github.event.repository.private }}

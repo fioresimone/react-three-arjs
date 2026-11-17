@@ -16,7 +16,7 @@
     "format:check": "prettier --check .",
     "check:package": "pnpm --filter ./packages/** check:package",
     "changeset": "changeset",
-    "release": "pnpm build && changeset publish"
+    "release": "pnpm build && node scripts/publish.mjs"
   },
   "devDependencies": {
     "@changesets/cli": "^3.0.3",
